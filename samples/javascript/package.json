@@ -1,0 +1,44 @@
+{
+  "name": "sample-api-server",
+  "version": "1.0.0",
+  "description": "Sample Express.js API server",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "mongoose": "^7.5.0",
+    "joi": "^17.9.2",
+    "dotenv": "^16.3.1",
+    "compression": "^1.7.4",
+    "rate-limiter-flexible": "^3.0.8",
+    "express-rate-limit": "^6.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3",
+    "eslint": "^8.47.0",
+    "@types/node": "^20.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "api",
+    "express",
+    "rest",
+    "nodejs"
+  ],
+  "author": "Sample Developer",
+  "license": "MIT"
+} 

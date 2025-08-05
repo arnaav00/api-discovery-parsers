@@ -1,0 +1,684 @@
+[2023-07-15 10:30:21.012] RESPONSE 192.168.1.116:45679 <- api.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:21 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 245
+Connection: keep-alive
+Server: nginx/1.18.0
+X-Request-ID: req-update-user-123
+ETag: "user-etag-789"
+Last-Modified: Sat, 15 Jul 2023 10:30:21 GMT
+Cache-Control: private, max-age=0
+
+{"id":123,"name":"Alice Johnson Updated","email":"alice.updated@example.com","role":"admin","active":true,"profile":{"bio":"Updated bio","preferences":{"theme":"light","notifications":{"email":true,"push":false}}},"updated_at":"2023-07-15T10:30:21Z"}
+
+[2023-07-15 10:30:22.123] REQUEST 192.168.1.117:56780 -> grpc.example.com:443
+POST https://grpc.example.com/api.UserService/GetUser HTTP/2
+Host: grpc.example.com
+User-Agent: grpc-go/1.56.0
+Content-Type: application/grpc+proto
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.grpc_token
+Grpc-Encoding: gzip
+Grpc-Accept-Encoding: gzip
+Grpc-Timeout: 30S
+Te: trailers
+
+[GRPC Binary Payload - Proto3 serialized data]
+0x00 0x00 0x00 0x00 0x0C 0x08 0x7B 0x12 0x08 0x41 0x6C 0x69 0x63 0x65
+
+[2023-07-15 10:30:22.234] RESPONSE 192.168.1.117:56780 <- grpc.example.com:443
+HTTP/2 200 OK
+Date: Sat, 15 Jul 2023 10:30:22 GMT
+Content-Type: application/grpc+proto
+Server: grpc-server/1.56.0
+Grpc-Status: 0
+Grpc-Message: 
+Grpc-Encoding: gzip
+
+[GRPC Binary Response - Proto3 serialized data]
+0x00 0x00 0x00 0x00 0x45 0x08 0x7B 0x12 0x15 0x41 0x6C 0x69 0x63 0x65 0x20 0x4A 0x6F 0x68 0x6E 0x73 0x6F 0x6E 0x20 0x55 0x70 0x64 0x61 0x74 0x65 0x64
+
+[2023-07-15 10:30:23.345] REQUEST 192.168.1.118:67891 -> api.example.com:443
+OPTIONS https://api.example.com/v1/orders HTTP/1.1
+Host: api.example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+Accept: */*
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: authorization,content-type
+Origin: https://shop.example.com
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+Sec-Fetch-Dest: empty
+Connection: keep-alive
+
+[2023-07-15 10:30:23.356] RESPONSE 192.168.1.118:67891 <- api.example.com:443
+HTTP/1.1 204 No Content
+Date: Sat, 15 Jul 2023 10:30:23 GMT
+Connection: keep-alive
+Server: nginx/1.18.0
+Access-Control-Allow-Origin: https://shop.example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With, X-API-Version
+Access-Control-Max-Age: 3600
+Access-Control-Allow-Credentials: true
+Vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+
+[2023-07-15 10:30:24.456] REQUEST 192.168.1.119:78902 -> streaming.example.com:443
+GET https://streaming.example.com/v1/events HTTP/1.1
+Host: streaming.example.com
+User-Agent: EventStream-Client/1.0
+Accept: text/event-stream
+Cache-Control: no-cache
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.stream_token
+Connection: keep-alive
+Last-Event-ID: event-12345
+
+[2023-07-15 10:30:24.567] RESPONSE 192.168.1.119:78902 <- streaming.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:24 GMT
+Content-Type: text/event-stream; charset=utf-8
+Connection: keep-alive
+Server: sse-server/2.1.0
+Cache-Control: no-cache
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+
+[2023-07-15 10:30:24.568] SSE STREAM START 192.168.1.119:78902 <- streaming.example.com:443
+
+[2023-07-15 10:30:24.569] SSE DATA 192.168.1.119:78902 <- streaming.example.com:443
+id: event-12346
+event: user_update
+data: {"user_id": 123, "name": "Alice Johnson Updated", "timestamp": "2023-07-15T10:30:24Z"}
+
+[2023-07-15 10:30:25.678] SSE DATA 192.168.1.119:78902 <- streaming.example.com:443
+id: event-12347
+event: order_created
+data: {"order_id": "order-789", "user_id": 456, "total": 99.99, "timestamp": "2023-07-15T10:30:25Z"}
+
+[2023-07-15 10:30:26.789] REQUEST 192.168.1.120:89013 -> api.example.com:443
+GET https://api.example.com/v1/search?q=javascript%20tutorial&category=programming&sort=relevance&page=1 HTTP/1.1
+Host: api.example.com
+User-Agent: Search-App/1.2.3 (Android 13; Pixel 7)
+Accept: application/json
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.search_token
+Connection: keep-alive
+X-Device-ID: device-abc123
+X-App-Version: 1.2.3
+X-Platform: android
+
+[2023-07-15 10:30:26.901] RESPONSE 192.168.1.120:89013 <- api.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:26 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 1234
+Content-Encoding: gzip
+Connection: keep-alive
+Server: search-api/3.4.2
+X-Search-Query-Time: 45ms
+X-Total-Results: 15420
+X-Search-ID: search-xyz789
+Cache-Control: public, max-age=300
+
+{"results":[{"id":"tutorial-1","title":"JavaScript Fundamentals Tutorial","description":"Learn the basics of JavaScript programming","url":"https://tutorials.example.com/js-fundamentals","score":0.95,"category":"programming"},{"id":"tutorial-2","title":"Advanced JavaScript Patterns","description":"Explore advanced JavaScript design patterns","url":"https://tutorials.example.com/js-advanced","score":0.87,"category":"programming"}],"pagination":{"page":1,"per_page":20,"total":15420,"total_pages":771},"facets":{"categories":{"programming":15420,"web-development":8930,"mobile":2341},"difficulty":{"beginner":6789,"intermediate":5432,"advanced":3199}},"search_metadata":{"query":"javascript tutorial","query_time":"45ms","search_id":"search-xyz789"}}
+
+[2023-07-15 10:30:27.012] SUSPICIOUS REQUEST 192.168.1.121:90124 -> api.example.com:443
+POST https://api.example.com/v1/users/../../../etc/passwd HTTP/1.1
+Host: api.example.com
+User-Agent: curl/7.68.0
+Accept: */*
+Content-Type: application/json
+Content-Length: 50
+X-Forwarded-For: 192.168.1.121
+
+{"username":"admin","password":"' OR '1'='1' --"}
+
+SECURITY ALERT: Path traversal attempt detected
+BLOCKED: Potential directory traversal in URL path
+PATTERN_MATCHED: \.\.\/
+CLIENT_IP: 192.168.1.121
+THREAT_SCORE: 8.5/10
+
+[2023-07-15 10:30:28.123] REQUEST 192.168.1.122:12358 -> api.analytics.com:443
+POST https://api.analytics.com/v2/events/batch HTTP/1.1
+Host: api.analytics.com
+User-Agent: Analytics-SDK/2.4.0 (JavaScript)
+Accept: application/json
+Content-Type: application/json
+Content-Length: 789
+Authorization: Bearer pk_live_analytics_key_abc123
+Connection: keep-alive
+X-Batch-Size: 5
+X-Client-ID: web-app-prod
+
+[{"event":"page_view","timestamp":"2023-07-15T10:30:01.000Z","user_id":"user-001","properties":{"page":"/dashboard","referrer":"https://google.com","user_agent":"Mozilla/5.0..."}},{"event":"button_click","timestamp":"2023-07-15T10:30:05.500Z","user_id":"user-001","properties":{"button_id":"submit-form","page":"/dashboard"}},{"event":"form_submit","timestamp":"2023-07-15T10:30:10.200Z","user_id":"user-001","properties":{"form_id":"contact-form","success":true}},{"event":"api_call","timestamp":"2023-07-15T10:30:15.800Z","user_id":"user-001","properties":{"endpoint":"/api/v1/users","method":"GET","status_code":200,"duration_ms":156}},{"event":"session_end","timestamp":"2023-07-15T10:30:28.000Z","user_id":"user-001","properties":{"session_duration_ms":27000,"pages_viewed":3}}]
+
+[2023-07-15 10:30:28.245] RESPONSE 192.168.1.122:12358 <- api.analytics.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:28 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 167
+Connection: keep-alive
+Server: analytics-api/4.1.2
+X-Events-Processed: 5
+X-Processing-Time: 122ms
+X-Batch-ID: batch-xyz789
+
+{"status":"success","events_processed":5,"batch_id":"batch-xyz789","processing_time_ms":122,"errors":[],"timestamp":"2023-07-15T10:30:28Z"}
+
+[2023-07-15 10:30:29.356] WEBSOCKET PING 192.168.1.101:45678 -> websocket.example.com:443
+PING frame: payload_length=4, payload="ping"
+
+[2023-07-15 10:30:29.357] WEBSOCKET PONG 192.168.1.101:45678 <- websocket.example.com:443
+PONG frame: payload_length=4, payload="pong"
+
+[2023-07-15 10:30:30.467] REQUEST 192.168.1.123:23469 -> api.example.com:443
+GET https://api.example.com/v1/users/123/orders?status=completed&limit=10&include=items,shipping HTTP/1.1
+Host: api.example.com
+User-Agent: E-commerce-App/3.1.0 (iOS 16.5.1; iPhone14,2)
+Accept: application/vnd.api+json
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.orders_token
+Connection: keep-alive
+If-None-Match: "orders-etag-456"
+X-Device-Type: mobile
+X-App-Version: 3.1.0
+
+[2023-07-15 10:30:30.578] RESPONSE 192.168.1.123:23469 <- api.example.com:443
+HTTP/1.1 304 Not Modified
+Date: Sat, 15 Jul 2023 10:30:30 GMT
+Connection: keep-alive
+Server: nginx/1.18.0
+ETag: "orders-etag-456"
+Cache-Control: private, max-age=600
+Last-Modified: Sat, 15 Jul 2023 09:45:00 GMT
+X-Cache-Status: HIT
+
+[2023-07-15 10:30:31.689] CONNECTION CLOSE 192.168.1.101:45678 <-> websocket.example.com:443
+WEBSOCKET CLOSE frame: code=1000, reason="Normal closure"
+CONNECTION TERMINATED: Normal WebSocket closure
+
+[2023-07-15 10:30:32.790] REQUEST 192.168.1.124:34570 -> api.example.com:443
+POST https://api.example.com/v1/auth/refresh HTTP/1.1
+Host: api.example.com
+User-Agent: Mobile-App/2.1.0 (iOS 16.5.1)
+Accept: application/json
+Content-Type: application/json
+Content-Length: 89
+Connection: keep-alive
+X-Device-ID: device-ios-123
+X-App-Version: 2.1.0
+
+{"refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh_token_here"}
+
+[2023-07-15 10:30:32.901] RESPONSE 192.168.1.124:34570 <- api.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:32 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 234
+Connection: keep-alive
+Server: auth-service/1.9.2
+X-Token-Refreshed: true
+Cache-Control: no-store, no-cache, must-revalidate
+
+{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_access_token","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_refresh_token","expires_in":3600,"token_type":"Bearer"}
+
+[2023-07-15 10:30:33.012] MITM STATISTICS SUMMARY
+CONNECTIONS_TOTAL: 25
+REQUESTS_TOTAL: 32
+RESPONSES_TOTAL: 28
+WEBSOCKET_CONNECTIONS: 1
+SSE_STREAMS: 1
+BLOCKED_REQUESTS: 3
+SSL_ERRORS: 1
+RATE_LIMITED: 1
+BYTES_TRANSFERRED: 15728640
+UNIQUE_HOSTS: 12
+UNIQUE_IPS: 17
+SESSION_DURATION: 31889ms
+
+[2023-07-15 10:30:33.013] INFO MITM session completed
+[2023-07-15 10:30:33.014] INFO Log file saved to complex_mitm.log01.123] INFO Starting mitmproxy on 0.0.0.0:8080
+[2023-07-15 10:30:01.124] INFO Loading certificate authority from ~/.mitmproxy/mitmproxy-ca.pem
+[2023-07-15 10:30:01.125] INFO Proxy server listening at http://*:8080
+
+[2023-07-15 10:30:02.456] REQUEST 192.168.1.100:54321 -> api.example.com:443
+GET https://api.example.com/v1/users?page=1&limit=50&sort=created_at HTTP/1.1
+Host: api.example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+Accept: application/json, text/plain, */*
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+X-Request-ID: req-12345-abcde-fghij
+
+[2023-07-15 10:30:02.678] RESPONSE 192.168.1.100:54321 <- api.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:02 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 2154
+Connection: keep-alive
+Server: nginx/1.18.0
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1689422702
+X-Request-ID: req-12345-abcde-fghij
+Cache-Control: private, max-age=0, no-cache
+ETag: "abc123def456"
+Vary: Accept-Encoding, Authorization
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+{"users":[{"id":1,"name":"John Doe","email":"john@example.com","role":"admin","active":true,"created_at":"2023-07-01T12:00:00Z"},{"id":2,"name":"Jane Smith","email":"jane@example.com","role":"user","active":true,"created_at":"2023-07-02T14:30:00Z"}],"pagination":{"page":1,"limit":50,"total":2,"has_more":false},"meta":{"timestamp":"2023-07-15T10:30:02Z","request_id":"req-12345-abcde-fghij","version":"2.1.0"}}
+
+[2023-07-15 10:30:03.789] REQUEST 192.168.1.100:54322 -> api.example.com:443
+POST https://api.example.com/v2/users HTTP/1.1
+Host: api.example.com
+User-Agent: APIClient/3.2.1 (Linux; x86_64)
+Accept: application/json
+Content-Type: application/json
+Content-Length: 156
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTY4OTQyNjAwMH0.signature
+Connection: keep-alive
+X-API-Version: 2023-07-01
+X-Client-ID: client-abc123
+Idempotency-Key: idem-789xyz-create-user
+
+{"name":"Alice Johnson","email":"alice@example.com","role":"admin","profile":{"bio":"System administrator","preferences":{"theme":"dark","notifications":{"email":true,"push":false}}}}
+
+[2023-07-15 10:30:03.945] RESPONSE 192.168.1.100:54322 <- api.example.com:443
+HTTP/1.1 201 Created
+Date: Sat, 15 Jul 2023 10:30:03 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 234
+Connection: keep-alive
+Server: nginx/1.18.0
+Location: https://api.example.com/v2/users/123
+X-Request-ID: req-create-user-456
+X-Response-Time: 156ms
+Cache-Control: no-cache, no-store, must-revalidate
+Pragma: no-cache
+Expires: 0
+
+{"id":123,"name":"Alice Johnson","email":"alice@example.com","role":"admin","active":true,"profile":{"bio":"System administrator","preferences":{"theme":"dark","notifications":{"email":true,"push":false}}},"created_at":"2023-07-15T10:30:03Z","links":{"self":"https://api.example.com/v2/users/123","avatar":"https://api.example.com/v2/users/123/avatar"}}
+
+[2023-07-15 10:30:04.123] REQUEST 192.168.1.101:45678 -> websocket.example.com:443
+GET wss://websocket.example.com/v1/chat HTTP/1.1
+Host: websocket.example.com
+User-Agent: ChatApp/1.5.2 (iPhone; iOS 16.5.1)
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Protocol: chat, superchat
+Origin: https://chat.example.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.chat_token
+X-User-ID: user-789
+
+[2023-07-15 10:30:04.145] RESPONSE 192.168.1.101:45678 <- websocket.example.com:443
+HTTP/1.1 101 Switching Protocols
+Date: Sat, 15 Jul 2023 10:30:04 GMT
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat
+Server: websocket-server/2.1.0
+
+[2023-07-15 10:30:04.146] WEBSOCKET ESTABLISHED 192.168.1.101:45678 <-> websocket.example.com:443
+
+[2023-07-15 10:30:04.234] WEBSOCKET TX 192.168.1.101:45678 -> websocket.example.com:443
+{"type":"join_room","room_id":"general","user_id":"user-789","timestamp":"2023-07-15T10:30:04.234Z"}
+
+[2023-07-15 10:30:04.245] WEBSOCKET RX 192.168.1.101:45678 <- websocket.example.com:443
+{"type":"room_joined","room_id":"general","user_count":42,"welcome_message":"Welcome to the general chat!"}
+
+[2023-07-15 10:30:05.567] REQUEST 192.168.1.102:33445 -> upload.example.com:443
+POST https://upload.example.com/v1/files HTTP/1.1
+Host: upload.example.com
+User-Agent: FileUploader/2.0.1 (macOS 13.4.1)
+Accept: application/json
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Length: 2048576
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.upload_token
+Connection: keep-alive
+X-Upload-Session: session-upload-abc123
+X-File-Checksum: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="document.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+... [BINARY FILE CONTENT TRUNCATED] ...
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Important business document for Q3 2023 planning
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="tags"
+
+business,planning,q3,2023
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+[2023-07-15 10:30:06.789] RESPONSE 192.168.1.102:33445 <- upload.example.com:443
+HTTP/1.1 201 Created
+Date: Sat, 15 Jul 2023 10:30:06 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 345
+Connection: keep-alive
+Server: upload-server/1.8.2
+Location: https://upload.example.com/v1/files/file-uuid-789abc
+X-Upload-Session: session-upload-abc123
+X-File-ID: file-uuid-789abc
+X-Processing-Status: pending
+
+{"id":"file-uuid-789abc","filename":"document.pdf","size":2048576,"mime_type":"application/pdf","checksum":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","uploaded_at":"2023-07-15T10:30:06Z","download_url":"https://cdn.example.com/files/file-uuid-789abc","status":"processing"}
+
+[2023-07-15 10:30:07.012] REQUEST 192.168.1.103:56789 -> graphql.example.com:443
+POST https://graphql.example.com/graphql HTTP/1.1
+Host: graphql.example.com
+User-Agent: GraphQL-Client/4.1.0
+Accept: application/json
+Content-Type: application/json
+Content-Length: 278
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.graphql_token
+Connection: keep-alive
+X-GraphQL-Client: web-app
+Apollo-Require-Preflight: true
+
+{"query":"query GetUserWithPosts($userId: ID!, $limit: Int) {\n  user(id: $userId) {\n    id\n    name\n    email\n    posts(limit: $limit) {\n      id\n      title\n      content\n      createdAt\n      tags\n    }\n  }\n}","variables":{"userId":"123","limit":5},"operationName":"GetUserWithPosts"}
+
+[2023-07-15 10:30:07.234] RESPONSE 192.168.1.103:56789 <- graphql.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:07 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 567
+Connection: keep-alive
+Server: graphql-server/3.5.1
+X-GraphQL-Query-Cost: 15
+X-GraphQL-Query-Depth: 3
+X-GraphQL-Tracing: enabled
+Cache-Control: private, max-age=300
+
+{"data":{"user":{"id":"123","name":"Alice Johnson","email":"alice@example.com","posts":[{"id":"1","title":"Getting Started with GraphQL","content":"GraphQL is a powerful query language...","createdAt":"2023-07-10T09:00:00Z","tags":["graphql","api","tutorial"]},{"id":"2","title":"Advanced Authentication Patterns","content":"Implementing secure auth flows...","createdAt":"2023-07-12T14:30:00Z","tags":["auth","security","jwt"]}]}},"extensions":{"tracing":{"version":1,"startTime":"2023-07-15T10:30:07.013Z","endTime":"2023-07-15T10:30:07.232Z","duration":219000000}}}
+
+[2023-07-15 10:30:08.345] REQUEST 192.168.1.104:12345 -> api.malicious-site.com:443
+GET https://api.malicious-site.com/exploit?payload=<script>alert('xss')</script> HTTP/1.1
+Host: api.malicious-site.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Referer: https://suspicious-site.com/
+
+[2023-07-15 10:30:08.456] BLOCKED REQUEST 192.168.1.104:12345 -> api.malicious-site.com:443
+REASON: Potential XSS attack detected in query parameters
+RULE: BLOCK_XSS_PATTERNS
+PATTERN_MATCHED: <script.*?>.*?</script>
+
+[2023-07-15 10:30:08.567] REQUEST 192.168.1.105:23456 -> oauth.example.com:443
+POST https://oauth.example.com/oauth/token HTTP/1.1
+Host: oauth.example.com
+User-Agent: OAuth-Client/1.0
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 145
+Authorization: Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=
+Connection: keep-alive
+
+grant_type=authorization_code&code=AUTH_CODE_HERE&redirect_uri=https%3A//app.example.com/callback&client_id=client_abc123
+
+[2023-07-15 10:30:08.678] RESPONSE 192.168.1.105:23456 <- oauth.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:08 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 234
+Connection: keep-alive
+Server: oauth-server/2.4.1
+Cache-Control: no-store
+Pragma: no-cache
+
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.access_token_payload","token_type":"Bearer","expires_in":3600,"refresh_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.refresh_token_payload","scope":"read write"}
+
+[2023-07-15 10:30:09.789] REQUEST 192.168.1.106:34567 -> api.payment.com:443
+POST https://api.payment.com/v1/charges HTTP/1.1
+Host: api.payment.com
+User-Agent: Payment-SDK/2.1.0 (Node.js 18.16.0)
+Accept: application/json
+Content-Type: application/json
+Content-Length: 234
+Authorization: Bearer sk_live_1234567890abcdef
+Connection: keep-alive
+Stripe-Version: 2023-06-01
+Idempotency-Key: charge-idem-key-xyz789
+
+{"amount":2500,"currency":"usd","source":"tok_visa_1234","description":"Test charge for order #12345","metadata":{"order_id":"12345","customer_id":"cust_abc123"},"receipt_email":"customer@example.com"}
+
+[2023-07-15 10:30:09.912] RESPONSE 192.168.1.106:34567 <- api.payment.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:09 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 456
+Connection: keep-alive
+Server: payment-api/3.2.1
+Request-Id: req_payment_xyz789
+Stripe-Version: 2023-06-01
+
+{"id":"ch_1234567890abcdef","object":"charge","amount":2500,"currency":"usd","created":1689422709,"description":"Test charge for order #12345","paid":true,"status":"succeeded","receipt_url":"https://pay.payment.com/receipts/ch_1234567890abcdef","outcome":{"network_status":"approved_by_network","reason":null,"risk_level":"normal","type":"authorized"}}
+
+[2023-07-15 10:30:10.123] REQUEST 192.168.1.107:45678 -> metrics.example.com:443
+GET https://metrics.example.com/prometheus/metrics HTTP/1.1
+Host: metrics.example.com
+User-Agent: Prometheus/2.45.0
+Accept: application/openmetrics-text; version=1.0.0, application/openmetrics-text; version=0.0.1; charset=utf-8, text/plain; version=0.0.4; charset=utf-8, */*; charset=utf-8
+Accept-Encoding: gzip
+Connection: keep-alive
+X-Prometheus-Scrape-Timeout-Seconds: 10
+
+[2023-07-15 10:30:10.234] RESPONSE 192.168.1.107:45678 <- metrics.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:10 GMT
+Content-Type: text/plain; version=0.0.4; charset=utf-8
+Content-Length: 512
+Connection: keep-alive
+Server: prometheus-exporter/1.2.0
+
+# HELP http_requests_total The total number of HTTP requests.
+# TYPE http_requests_total counter
+http_requests_total{method="GET",code="200"} 1027
+http_requests_total{method="POST",code="200"} 234
+http_requests_total{method="POST",code="201"} 89
+# HELP http_request_duration_seconds The HTTP request latencies in seconds.
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.1"} 145
+http_request_duration_seconds_bucket{le="0.5"} 312
+http_request_duration_seconds_bucket{le="1.0"} 456
+http_request_duration_seconds_bucket{le="+Inf"} 567
+http_request_duration_seconds_sum 234.5
+http_request_duration_seconds_count 567
+
+[2023-07-15 10:30:11.345] REQUEST 192.168.1.108:56789 -> api.example.com:443
+DELETE https://api.example.com/v1/users/456 HTTP/1.1
+Host: api.example.com
+User-Agent: Admin-Panel/1.3.2
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin_token
+Connection: keep-alive
+X-Confirm-Delete: true
+X-Admin-User: admin@example.com
+If-Match: "etag-abc123"
+
+[2023-07-15 10:30:11.456] RESPONSE 192.168.1.108:56789 <- api.example.com:443
+HTTP/1.1 204 No Content
+Date: Sat, 15 Jul 2023 10:30:11 GMT
+Connection: keep-alive
+Server: nginx/1.18.0
+X-Request-ID: req-delete-user-456
+X-Audit-Log-ID: audit-log-789xyz
+Cache-Control: no-cache
+
+[2023-07-15 10:30:12.567] REQUEST 192.168.1.109:67890 -> cdn.example.com:443
+GET https://cdn.example.com/api/v1/health HTTP/1.1
+Host: cdn.example.com
+User-Agent: HealthChecker/1.0 (Kubernetes 1.27.3)
+Accept: application/json
+Connection: keep-alive
+X-Forwarded-For: 10.0.1.15
+X-Health-Check: true
+
+[2023-07-15 10:30:12.578] RESPONSE 192.168.1.109:67890 <- cdn.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:12 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 89
+Connection: keep-alive
+Server: health-check/1.0.0
+X-Health-Status: healthy
+Cache-Control: no-cache, no-store, must-revalidate
+
+{"status":"healthy","timestamp":"2023-07-15T10:30:12Z","uptime":86400,"checks":{"database":"ok","redis":"ok"}}
+
+[2023-07-15 10:30:13.678] REQUEST 192.168.1.110:78901 -> api.example.com:443
+PATCH https://api.example.com/v3/orders/789/status HTTP/1.1
+Host: api.example.com
+User-Agent: Order-Management/2.5.1
+Accept: application/vnd.api+json
+Content-Type: application/json-patch+json
+Content-Length: 156
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.order_token
+Connection: keep-alive
+X-API-Version: 2023-07-01
+
+[{"op":"replace","path":"/status","value":"shipped"},{"op":"add","path":"/tracking_number","value":"1Z999AA1234567890"},{"op":"add","path":"/shipped_at","value":"2023-07-15T10:30:13Z"}]
+
+[2023-07-15 10:30:13.789] RESPONSE 192.168.1.110:78901 <- api.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:13 GMT
+Content-Type: application/vnd.api+json
+Content-Length: 345
+Connection: keep-alive
+Server: nginx/1.18.0
+X-Request-ID: req-patch-order-789
+Cache-Control: no-cache
+
+{"data":{"type":"orders","id":"789","attributes":{"status":"shipped","tracking_number":"1Z999AA1234567890","shipped_at":"2023-07-15T10:30:13Z","updated_at":"2023-07-15T10:30:13Z"},"links":{"self":"https://api.example.com/v3/orders/789","tracking":"https://tracking.example.com/1Z999AA1234567890"}}}
+
+[2023-07-15 10:30:14.890] CONNECTION ERROR 192.168.1.111:89012 -> timeout.example.com:443
+CONNECT timeout.example.com:443 HTTP/1.1
+Host: timeout.example.com:443
+Proxy-Connection: keep-alive
+
+ERROR: Connection timeout after 30 seconds
+REASON: No response from upstream server
+RETRY_COUNT: 3
+
+[2023-07-15 10:30:15.123] REQUEST 192.168.1.112:90123 -> webhook.example.com:443
+POST https://webhook.example.com/github/push HTTP/1.1
+Host: webhook.example.com
+User-Agent: GitHub-Hookshot/abc123
+Accept: */*
+Content-Type: application/json
+Content-Length: 456
+X-GitHub-Delivery: 12345678-1234-1234-1234-123456789012
+X-GitHub-Event: push
+X-GitHub-Hook-ID: 123456789
+X-GitHub-Hook-Installation-Target-ID: 987654321
+X-GitHub-Hook-Installation-Target-Type: repository
+X-Hub-Signature-256: sha256=1234567890abcdef1234567890abcdef12345678
+
+{"ref":"refs/heads/main","before":"83b86e5f286f546dc5a4a58db66ceef44460c85e","after":"0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c","repository":{"id":123456789,"name":"test-repo","full_name":"user/test-repo"},"pusher":{"name":"developer","email":"dev@example.com"},"commits":[{"id":"0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c","message":"Fix bug in user authentication","author":{"name":"Developer","email":"dev@example.com"}}]}
+
+[2023-07-15 10:30:15.234] RESPONSE 192.168.1.112:90123 <- webhook.example.com:443
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 10:30:15 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 67
+Connection: keep-alive
+Server: webhook-processor/1.4.0
+X-Webhook-ID: webhook-processed-abc123
+
+{"status":"processed","webhook_id":"webhook-processed-abc123","timestamp":"2023-07-15T10:30:15Z"}
+
+[2023-07-15 10:30:16.345] SSL HANDSHAKE ERROR 192.168.1.113:12346 -> badssl.example.com:443
+CLIENT_HELLO: TLS 1.3, Cipher Suites: [TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256]
+SERVER_HELLO: TLS 1.2, Cipher Suite: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+CERTIFICATE_VERIFY: FAILED
+ERROR: Certificate verification failed
+REASON: Self-signed certificate in certificate chain
+CERTIFICATE_SUBJECT: CN=badssl.example.com
+CERTIFICATE_ISSUER: CN=badssl.example.com (self-signed)
+CERTIFICATE_FINGERPRINT: SHA256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+
+[2023-07-15 10:30:17.456] REQUEST 192.168.1.114:23457 -> api.example.com:443
+HEAD https://api.example.com/v1/files/large-file.zip HTTP/1.1
+Host: api.example.com
+User-Agent: Download-Manager/3.1.0
+Accept: */*
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.file_token
+Connection: keep-alive
+Range: bytes=0-1023
+
+[2023-07-15 10:30:17.567] RESPONSE 192.168.1.114:23457 <- api.example.com:443
+HTTP/1.1 206 Partial Content
+Date: Sat, 15 Jul 2023 10:30:17 GMT
+Content-Type: application/zip
+Content-Length: 1024
+Content-Range: bytes 0-1023/1048576000
+Connection: keep-alive
+Server: file-server/2.3.1
+Accept-Ranges: bytes
+Last-Modified: Fri, 14 Jul 2023 15:20:00 GMT
+ETag: "large-file-etag-123"
+
+[2023-07-15 10:30:18.678] WEBSOCKET TX 192.168.1.101:45678 -> websocket.example.com:443
+{"type":"message","room_id":"general","user_id":"user-789","content":"Hello everyone!","timestamp":"2023-07-15T10:30:18.678Z"}
+
+[2023-07-15 10:30:18.689] WEBSOCKET RX 192.168.1.101:45678 <- websocket.example.com:443
+{"type":"message_broadcast","room_id":"general","message_id":"msg-abc123","user_id":"user-789","content":"Hello everyone!","timestamp":"2023-07-15T10:30:18.678Z","user_name":"ChatUser789"}
+
+[2023-07-15 10:30:19.789] RATE_LIMIT_EXCEEDED 192.168.1.115:34568 -> api.example.com:443
+GET https://api.example.com/v1/users?page=100 HTTP/1.1
+Host: api.example.com
+User-Agent: Scraper-Bot/1.0
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.rate_limited_token
+
+BLOCKED: Rate limit exceeded
+RATE_LIMIT: 1000 requests per hour
+CURRENT_USAGE: 1001 requests in last hour
+RESET_TIME: 2023-07-15T11:30:19Z
+CLIENT_IP: 192.168.1.115
+
+[2023-07-15 10:30:20.890] REQUEST 192.168.1.116:45679 -> api.example.com:443
+PUT https://api.example.com/v1/users/123 HTTP/1.1
+Host: api.example.com
+User-Agent: User-Profile-App/2.1.0
+Accept: application/json
+Content-Type: application/json
+Content-Length: 123
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.user_token
+Connection: keep-alive
+If-Match: "user-etag-456"
+X-Request-Source: mobile-app
+
+{"name":"Alice Johnson Updated","email":"alice.updated@example.com","profile":{"bio":"Updated bio","preferences":{"theme":"light"}}}
+
+[2023-07-15 10:30:

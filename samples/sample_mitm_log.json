@@ -1,0 +1,421 @@
+[
+  {
+    "timestamp": "2024-01-15 10:30:00",
+    "method": "GET",
+    "url": "https://api.example.com/users?page=1&limit=10",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users",
+    "query": "page=1&limit=10",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json",
+      "X-API-Key": "api-key-12345"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+      "X-Rate-Limit-Remaining": "99"
+    },
+    "response_body": {
+      "users": [
+        {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com",
+          "active": true
+        },
+        {
+          "id": 2,
+          "name": "Jane Smith",
+          "email": "jane@example.com",
+          "active": false
+        }
+      ],
+      "total": 2,
+      "page": 1,
+      "limit": 10
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:31:15",
+    "method": "POST",
+    "url": "https://api.example.com/users",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "age": 28,
+      "active": true,
+      "preferences": {
+        "theme": "dark",
+        "notifications": true
+      }
+    },
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 201,
+    "response_status_text": "Created",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "Location": "/users/3"
+    },
+    "response_body": {
+      "id": 3,
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "age": 28,
+      "active": true,
+      "created_at": "2024-01-15T10:31:15Z"
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:32:30",
+    "method": "GET",
+    "url": "https://api.example.com/users/1",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users/1",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "ETag": "\"abc123\""
+    },
+    "response_body": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "active": true,
+      "created_at": "2024-01-10T08:00:00Z",
+      "updated_at": "2024-01-15T09:30:00Z"
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:33:45",
+    "method": "PUT",
+    "url": "https://api.example.com/users/2",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users/2",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json",
+      "If-Match": "\"def456\""
+    },
+    "body": {
+      "name": "Jane Smith Updated",
+      "email": "jane.updated@example.com",
+      "active": true
+    },
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "ETag": "\"ghi789\""
+    },
+    "response_body": {
+      "id": 2,
+      "name": "Jane Smith Updated",
+      "email": "jane.updated@example.com",
+      "active": true,
+      "updated_at": "2024-01-15T10:33:45Z"
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:35:00",
+    "method": "DELETE",
+    "url": "https://api.example.com/users/3",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users/3",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 204,
+    "response_status_text": "No Content",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {},
+    "response_body": null
+  },
+  {
+    "timestamp": "2024-01-15 10:36:15",
+    "method": "POST",
+    "url": "https://api.example.com/auth/login",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/auth/login",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "body": {
+      "username": "user@example.com",
+      "password": "password123"
+    },
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "Set-Cookie": "session=abc123; HttpOnly; Secure"
+    },
+    "response_body": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refresh_token": "def456...",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "user": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "user@example.com"
+      }
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:37:30",
+    "method": "GET",
+    "url": "https://api.example.com/products?category=electronics&min_price=100&max_price=1000",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/products",
+    "query": "category=electronics&min_price=100&max_price=1000",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "X-Total-Count": "15"
+    },
+    "response_body": {
+      "products": [
+        {
+          "id": 1,
+          "name": "Smartphone",
+          "price": 599.99,
+          "category": "electronics",
+          "in_stock": true
+        },
+        {
+          "id": 2,
+          "name": "Laptop",
+          "price": 999.99,
+          "category": "electronics",
+          "in_stock": false
+        }
+      ],
+      "total": 15,
+      "page": 1,
+      "limit": 10
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:38:45",
+    "method": "POST",
+    "url": "https://api.example.com/files/upload",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/files/upload",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    },
+    "body": {
+      "file": "base64-encoded-file-content",
+      "filename": "document.pdf",
+      "description": "Important document"
+    },
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 201,
+    "response_status_text": "Created",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json",
+      "Location": "/files/abc123"
+    },
+    "response_body": {
+      "id": "abc123",
+      "filename": "document.pdf",
+      "size": 1024000,
+      "url": "https://api.example.com/files/abc123/download",
+      "uploaded_at": "2024-01-15T10:38:45Z"
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:40:00",
+    "method": "GET",
+    "url": "https://api.example.com/health",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/health",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 200,
+    "response_status_text": "OK",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json"
+    },
+    "response_body": {
+      "status": "healthy",
+      "timestamp": "2024-01-15T10:40:00Z",
+      "version": "1.0.0",
+      "uptime": 86400
+    }
+  },
+  {
+    "timestamp": "2024-01-15 10:41:15",
+    "method": "GET",
+    "url": "https://api.example.com/users/999",
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/users/999",
+    "query": "",
+    "http_version": "HTTP/1.1",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "Content-Type": "application/json"
+    },
+    "body": null,
+    "ssl_info": {
+      "subject": "CN=api.example.com",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serial": "03:45:67:89:AB:CD:EF:01",
+      "protocol": "TLSv1.3",
+      "cipher_suite": "TLS_AES_256_GCM_SHA384"
+    },
+    "response_status": 404,
+    "response_status_text": "Not Found",
+    "response_http_version": "HTTP/1.1",
+    "response_headers": {
+      "Content-Type": "application/json"
+    },
+    "response_body": {
+      "error": "User not found",
+      "message": "The requested user with ID 999 does not exist",
+      "code": "USER_NOT_FOUND"
+    }
+  }
+] 

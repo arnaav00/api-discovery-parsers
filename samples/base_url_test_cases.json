@@ -1,0 +1,465 @@
+{
+  "test_cases": [
+    {
+      "name": "RESTful API with Versioning",
+      "base_url": "https://api.example.com",
+      "expected_endpoints": [
+        "/api/v1/users",
+        "/api/v1/products",
+        "/api/v2/users",
+        "/api/v2/products",
+        "/v1/auth",
+        "/v2/auth",
+        "/health",
+        "/docs"
+      ],
+      "description": "Standard RESTful API with versioning and common endpoints"
+    },
+    {
+      "name": "Authentication-Heavy API",
+      "base_url": "https://auth.example.com",
+      "expected_endpoints": [
+        "/auth/login",
+        "/auth/logout",
+        "/auth/register",
+        "/auth/refresh",
+        "/oauth/token",
+        "/oauth/authorize",
+        "/jwt/validate",
+        "/saml/login"
+      ],
+      "description": "API focused on authentication and authorization"
+    },
+    {
+      "name": "E-commerce API",
+      "base_url": "https://shop.example.com",
+      "expected_endpoints": [
+        "/api/products",
+        "/api/orders",
+        "/api/customers",
+        "/api/cart",
+        "/api/payments",
+        "/api/shipping",
+        "/api/inventory",
+        "/api/reviews"
+      ],
+      "description": "E-commerce platform with typical business endpoints"
+    },
+    {
+      "name": "File Management API",
+      "base_url": "https://files.example.com",
+      "expected_endpoints": [
+        "/api/files",
+        "/api/upload",
+        "/api/download",
+        "/api/folders",
+        "/api/media",
+        "/api/thumbnails",
+        "/api/sharing",
+        "/api/backup"
+      ],
+      "description": "File storage and management API"
+    },
+    {
+      "name": "Social Media API",
+      "base_url": "https://social.example.com",
+      "expected_endpoints": [
+        "/api/users",
+        "/api/posts",
+        "/api/comments",
+        "/api/likes",
+        "/api/followers",
+        "/api/messages",
+        "/api/notifications",
+        "/api/feed"
+      ],
+      "description": "Social media platform with user interactions"
+    },
+    {
+      "name": "Analytics API",
+      "base_url": "https://analytics.example.com",
+      "expected_endpoints": [
+        "/api/metrics",
+        "/api/reports",
+        "/api/dashboard",
+        "/api/events",
+        "/api/segments",
+        "/api/funnels",
+        "/api/conversions",
+        "/api/export"
+      ],
+      "description": "Analytics and reporting API"
+    },
+    {
+      "name": "IoT Device API",
+      "base_url": "https://iot.example.com",
+      "expected_endpoints": [
+        "/api/devices",
+        "/api/sensors",
+        "/api/telemetry",
+        "/api/alerts",
+        "/api/commands",
+        "/api/firmware",
+        "/api/gateways",
+        "/api/status"
+      ],
+      "description": "Internet of Things device management API"
+    },
+    {
+      "name": "Payment Processing API",
+      "base_url": "https://payments.example.com",
+      "expected_endpoints": [
+        "/api/charges",
+        "/api/refunds",
+        "/api/customers",
+        "/api/subscriptions",
+        "/api/webhooks",
+        "/api/disputes",
+        "/api/transfers",
+        "/api/balance"
+      ],
+      "description": "Payment processing and financial API"
+    },
+    {
+      "name": "Content Management API",
+      "base_url": "https://cms.example.com",
+      "expected_endpoints": [
+        "/api/pages",
+        "/api/posts",
+        "/api/media",
+        "/api/templates",
+        "/api/themes",
+        "/api/plugins",
+        "/api/users",
+        "/api/settings"
+      ],
+      "description": "Content management system API"
+    },
+    {
+      "name": "Healthcare API",
+      "base_url": "https://health.example.com",
+      "expected_endpoints": [
+        "/api/patients",
+        "/api/doctors",
+        "/api/appointments",
+        "/api/records",
+        "/api/prescriptions",
+        "/api/labs",
+        "/api/billing",
+        "/api/insurance"
+      ],
+      "description": "Healthcare management system API"
+    },
+    {
+      "name": "Education Platform API",
+      "base_url": "https://edu.example.com",
+      "expected_endpoints": [
+        "/api/students",
+        "/api/teachers",
+        "/api/courses",
+        "/api/assignments",
+        "/api/grades",
+        "/api/attendance",
+        "/api/calendar",
+        "/api/library"
+      ],
+      "description": "Educational platform API"
+    },
+    {
+      "name": "Real Estate API",
+      "base_url": "https://realestate.example.com",
+      "expected_endpoints": [
+        "/api/properties",
+        "/api/agents",
+        "/api/listings",
+        "/api/inquiries",
+        "/api/appointments",
+        "/api/mortgages",
+        "/api/valuations",
+        "/api/contracts"
+      ],
+      "description": "Real estate management API"
+    },
+    {
+      "name": "Travel Booking API",
+      "base_url": "https://travel.example.com",
+      "expected_endpoints": [
+        "/api/flights",
+        "/api/hotels",
+        "/api/bookings",
+        "/api/cars",
+        "/api/activities",
+        "/api/passengers",
+        "/api/pricing",
+        "/api/loyalty"
+      ],
+      "description": "Travel booking and reservation API"
+    },
+    {
+      "name": "Banking API",
+      "base_url": "https://bank.example.com",
+      "expected_endpoints": [
+        "/api/accounts",
+        "/api/transactions",
+        "/api/transfers",
+        "/api/cards",
+        "/api/loans",
+        "/api/investments",
+        "/api/statements",
+        "/api/security"
+      ],
+      "description": "Banking and financial services API"
+    },
+    {
+      "name": "Government API",
+      "base_url": "https://gov.example.com",
+      "expected_endpoints": [
+        "/api/citizens",
+        "/api/services",
+        "/api/forms",
+        "/api/applications",
+        "/api/permits",
+        "/api/taxes",
+        "/api/voting",
+        "/api/records"
+      ],
+      "description": "Government services and citizen portal API"
+    },
+    {
+      "name": "Logistics API",
+      "base_url": "https://logistics.example.com",
+      "expected_endpoints": [
+        "/api/shipments",
+        "/api/tracking",
+        "/api/warehouses",
+        "/api/inventory",
+        "/api/routes",
+        "/api/drivers",
+        "/api/vehicles",
+        "/api/customs"
+      ],
+      "description": "Logistics and supply chain management API"
+    },
+    {
+      "name": "Gaming API",
+      "base_url": "https://gaming.example.com",
+      "expected_endpoints": [
+        "/api/players",
+        "/api/games",
+        "/api/scores",
+        "/api/leaderboards",
+        "/api/achievements",
+        "/api/friends",
+        "/api/chat",
+        "/api/store"
+      ],
+      "description": "Gaming platform and multiplayer API"
+    },
+    {
+      "name": "News and Media API",
+      "base_url": "https://news.example.com",
+      "expected_endpoints": [
+        "/api/articles",
+        "/api/categories",
+        "/api/authors",
+        "/api/comments",
+        "/api/subscriptions",
+        "/api/trending",
+        "/api/search",
+        "/api/analytics"
+      ],
+      "description": "News and media content API"
+    },
+    {
+      "name": "Weather API",
+      "base_url": "https://weather.example.com",
+      "expected_endpoints": [
+        "/api/forecast",
+        "/api/current",
+        "/api/history",
+        "/api/alerts",
+        "/api/maps",
+        "/api/radar",
+        "/api/stations",
+        "/api/climate"
+      ],
+      "description": "Weather data and forecasting API"
+    },
+    {
+      "name": "Transportation API",
+      "base_url": "https://transport.example.com",
+      "expected_endpoints": [
+        "/api/routes",
+        "/api/schedules",
+        "/api/stops",
+        "/api/vehicles",
+        "/api/tickets",
+        "/api/passes",
+        "/api/realtime",
+        "/api/disruptions"
+      ],
+      "description": "Public transportation and mobility API"
+    },
+    {
+      "name": "Energy Management API",
+      "base_url": "https://energy.example.com",
+      "expected_endpoints": [
+        "/api/meters",
+        "/api/usage",
+        "/api/billing",
+        "/api/solar",
+        "/api/storage",
+        "/api/grid",
+        "/api/automation",
+        "/api/reports"
+      ],
+      "description": "Energy monitoring and management API"
+    }
+  ],
+  "common_patterns": {
+    "authentication": [
+      "/auth/login",
+      "/auth/logout",
+      "/auth/register",
+      "/auth/refresh",
+      "/oauth/token",
+      "/oauth/authorize",
+      "/jwt/validate",
+      "/saml/login",
+      "/openid/connect"
+    ],
+    "health_checks": [
+      "/health",
+      "/status",
+      "/ping",
+      "/ready",
+      "/live",
+      "/healthz",
+      "/statusz",
+      "/metrics",
+      "/info"
+    ],
+    "documentation": [
+      "/docs",
+      "/documentation",
+      "/api-docs",
+      "/swagger",
+      "/openapi",
+      "/redoc",
+      "/api.json",
+      "/swagger.json",
+      "/openapi.json"
+    ],
+    "versioning": [
+      "/api/v1",
+      "/api/v2",
+      "/api/v3",
+      "/v1",
+      "/v2",
+      "/v3",
+      "/v1.0",
+      "/v2.0",
+      "/v3.0"
+    ],
+    "admin": [
+      "/admin",
+      "/admin/users",
+      "/admin/settings",
+      "/management",
+      "/config",
+      "/settings",
+      "/system",
+      "/dashboard"
+    ],
+    "webhooks": [
+      "/webhooks",
+      "/hooks",
+      "/integrations",
+      "/callback",
+      "/notifications",
+      "/events",
+      "/webhook",
+      "/push"
+    ],
+    "search": [
+      "/search",
+      "/query",
+      "/filter",
+      "/find",
+      "/lookup",
+      "/discover",
+      "/explore"
+    ],
+    "files": [
+      "/files",
+      "/upload",
+      "/download",
+      "/media",
+      "/images",
+      "/documents",
+      "/assets",
+      "/storage"
+    ],
+    "users": [
+      "/users",
+      "/user",
+      "/users/me",
+      "/profile",
+      "/account",
+      "/members",
+      "/customers",
+      "/clients"
+    ],
+    "data": [
+      "/data",
+      "/records",
+      "/items",
+      "/entities",
+      "/objects",
+      "/resources",
+      "/content",
+      "/information"
+    ]
+  },
+  "rate_limiting_headers": [
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Reset",
+    "RateLimit-Limit",
+    "RateLimit-Remaining",
+    "RateLimit-Reset",
+    "X-Rate-Limit",
+    "Retry-After",
+    "X-RateLimit-RetryAfter"
+  ],
+  "authentication_headers": [
+    "Authorization",
+    "X-API-Key",
+    "X-Auth-Token",
+    "X-Access-Token",
+    "X-Client-ID",
+    "X-Client-Secret",
+    "Cookie",
+    "X-CSRF-Token"
+  ],
+  "ssl_indicators": [
+    "TLSv1.2",
+    "TLSv1.3",
+    "SSLv3",
+    "certificate",
+    "subject",
+    "issuer",
+    "serial",
+    "fingerprint"
+  ],
+  "api_indicators": [
+    "application/json",
+    "application/xml",
+    "api",
+    "endpoint",
+    "swagger",
+    "openapi",
+    "rest",
+    "graphql"
+  ]
+} 
