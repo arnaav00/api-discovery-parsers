@@ -98,11 +98,16 @@ class PostmanParser(BaseParser):
             return self.parsed_endpoints
             
         except Exception as e:
-            import traceback
-            error_details = traceback.format_exc()
-            self.add_error(f"Failed to parse Postman collection: {str(e)}")
-            self.add_error(f"Error details: {error_details}")
-            raise ValueError(f"Postman parsing failed: {str(e)}")
+            error_msg = f"Postman parsing failed: {str(e)}"
+            self.add_error(error_msg)
+            
+            # Print additional debugging information
+            if hasattr(e, '__traceback__'):
+                import traceback
+                print(f"Full traceback:")
+                traceback.print_exc()
+            
+            raise ValueError(error_msg)
     
     def _parse_input(self, data: Any) -> Dict[str, Any]:
         """
@@ -165,10 +170,24 @@ class PostmanParser(BaseParser):
         
         # Extract collection info
         info = self.collection_data.get('info', {})
+        
+        # Handle version field - it can be a string or an object
+        version_info = info.get('version', {})
+        if isinstance(version_info, dict):
+            version = version_info.get('major', 0)
+        elif isinstance(version_info, str):
+            # Try to extract major version from string like "2.1.0"
+            try:
+                version = int(version_info.split('.')[0])
+            except (ValueError, IndexError):
+                version = 0
+        else:
+            version = 0
+        
         self.collection_info = {
             'name': info.get('name', 'Unknown Collection'),
             'description': info.get('description', ''),
-            'version': info.get('version', {}).get('major', 0),
+            'version': version,
             'schema': info.get('schema', ''),
             'exported_at': info.get('exportedAt', ''),
             'exported_by': info.get('exportedBy', '')
@@ -208,29 +227,32 @@ class PostmanParser(BaseParser):
     
     def _process_item(self, item: Dict[str, Any], parent_auth: Optional[Dict[str, Any]] = None):
         """
-        Process a single item (request or folder).
+        Process a single item (folder or request).
         
         Args:
             item: The item to process
             parent_auth: Authentication from parent folder
         """
-        if not isinstance(item, dict):
-            self.add_warning(f"Skipping non-dict item: {type(item)}")
-            return
-        
-        # Check if it's a folder
-        if 'item' in item:
-            # This is a folder, process its items
-            folder_auth = item.get('auth', parent_auth)
-            sub_items = item.get('item', [])
-            if isinstance(sub_items, list):
-                for sub_item in sub_items:
-                    self._process_item(sub_item, folder_auth)
-            else:
-                self.add_warning(f"Folder items is not a list: {type(sub_items)}")
-        else:
-            # This is a request
-            self._process_request(item, parent_auth)
+        try:
+            if not isinstance(item, dict):
+                return
+                
+            # Check if this is a folder (has sub-items)
+            if 'item' in item:
+                # This is a folder, process its items
+                sub_items = item.get('item', [])
+                if isinstance(sub_items, list):
+                    for sub_item in sub_items:
+                        self._process_item(sub_item, parent_auth)
+            
+            # Check if this is a request (has request object)
+            elif 'request' in item:
+                # This is a request, process it
+                self._process_request(item, parent_auth)
+                
+        except Exception as e:
+            self.add_error(f"Error processing item: {str(e)}")
+            # Continue processing other items
     
     def _process_request(self, request: Dict[str, Any], parent_auth: Optional[Dict[str, Any]] = None):
         """
@@ -240,46 +262,51 @@ class PostmanParser(BaseParser):
             request: The request object
             parent_auth: Authentication from parent folder
         """
-        # Extract request info
-        request_info = request.get('request', {})
-        if not request_info:
-            return
-        
-        # Get method and URL
-        method = request_info.get('method', 'GET').upper()
-        url_info = request_info.get('url', {})
-        
-        if not url_info:
-            return
-        
-        # Build URL
-        full_url = self._build_url(url_info)
-        if not full_url:
-            return
-        
-        # Create endpoint
-        endpoint = self._create_endpoint(method, full_url, request)
-        
-        # Process URL parameters
-        self._process_url_parameters(endpoint, url_info)
-        
-        # Process headers
-        self._process_headers(endpoint, request_info)
-        
-        # Process request body
-        self._process_request_body(endpoint, request_info)
-        
-        # Process authentication
-        self._process_authentication(endpoint, request_info, parent_auth)
-        
-        # Process scripts
-        self._process_scripts(endpoint, request)
-        
-        # Process response examples
-        self._process_response_examples(endpoint, request)
-        
-        # Add the endpoint
-        self.add_endpoint(endpoint)
+        try:
+            # Extract request info
+            request_info = request.get('request', {})
+            if not request_info:
+                return
+            
+            # Get method and URL
+            method = request_info.get('method', 'GET').upper()
+            url_info = request_info.get('url', {})
+            
+            if not url_info:
+                return
+            
+            # Build URL
+            full_url = self._build_url(url_info)
+            if not full_url:
+                return
+            
+            # Create endpoint
+            endpoint = self._create_endpoint(method, full_url, request)
+            
+            # Process URL parameters
+            self._process_url_parameters(endpoint, url_info)
+            
+            # Process headers
+            self._process_headers(endpoint, request_info)
+            
+            # Process request body
+            self._process_request_body(endpoint, request_info)
+            
+            # Process authentication
+            self._process_authentication(endpoint, request_info, parent_auth)
+            
+            # Process scripts
+            self._process_scripts(endpoint, request)
+            
+            # Process response examples
+            self._process_response_examples(endpoint, request)
+            
+            # Add the endpoint
+            self.add_endpoint(endpoint)
+            
+        except Exception as e:
+            self.add_error(f"Error processing request: {str(e)}")
+            # Continue processing other requests
     
     def _build_url(self, url_info: Dict[str, Any]) -> Optional[str]:
         """
@@ -497,7 +524,7 @@ class PostmanParser(BaseParser):
             request_info: Request information
         """
         body = request_info.get('body', {})
-        if not body:
+        if not body or not isinstance(body, dict):
             return
         
         mode = body.get('mode', '')
@@ -565,7 +592,7 @@ class PostmanParser(BaseParser):
         """
         # Check request-level auth first
         auth = request_info.get('auth', parent_auth)
-        if not auth:
+        if not auth or not isinstance(auth, dict):
             return
         
         auth_info = self._create_auth_info_from_postman(auth)
@@ -577,55 +604,84 @@ class PostmanParser(BaseParser):
         Create AuthInfo from Postman authentication.
         
         Args:
-            auth: Postman authentication object
+            auth: Authentication object from Postman
             
         Returns:
             The created AuthInfo or None
         """
-        auth_info = AuthInfo()
+        if not isinstance(auth, dict):
+            return None
+            
         auth_type = auth.get('type', '').lower()
+        auth_info = AuthInfo()
         
         if auth_type == 'bearer':
             auth_info.auth_type = AuthType.BEARER
             auth_info.location = AuthLocation.HEADER
-            token = auth.get('bearer', [{}])[0].get('value', '')
-            auth_info.token = token
+            
+            bearer_config = auth.get('bearer', [])
+            if isinstance(bearer_config, list):
+                for token_config in bearer_config:
+                    if isinstance(token_config, dict):
+                        key = token_config.get('key', '')
+                        value = token_config.get('value', '')
+                        if key == 'token':
+                            auth_info.token = value
+                            break
+            elif isinstance(bearer_config, dict):
+                auth_info.token = bearer_config.get('token', '')
         
         elif auth_type == 'apikey':
             auth_info.auth_type = AuthType.API_KEY
             auth_info.location = AuthLocation.HEADER
-            key_info = auth.get('apikey', [{}])[0]
-            auth_info.api_key = key_info.get('key', '')
-            auth_info.token = key_info.get('value', '')
+            
+            apikey_config = auth.get('apikey', [])
+            if isinstance(apikey_config, list):
+                for key_config in apikey_config:
+                    if isinstance(key_config, dict):
+                        key = key_config.get('key', '')
+                        value = key_config.get('value', '')
+                        if key == 'key':
+                            auth_info.api_key = value
+                        elif key == 'value':
+                            auth_info.token = value
+            elif isinstance(apikey_config, dict):
+                auth_info.api_key = apikey_config.get('key', '')
+                auth_info.token = apikey_config.get('value', '')
         
         elif auth_type == 'basic':
             auth_info.auth_type = AuthType.BASIC
             auth_info.location = AuthLocation.HEADER
-            basic_auth = auth.get('basic', [{}])[0]
-            auth_info.username = basic_auth.get('username', '')
-            auth_info.password = basic_auth.get('password', '')
-        
-        elif auth_type == 'digest':
-            auth_info.auth_type = AuthType.DIGEST
-            auth_info.location = AuthLocation.HEADER
-            digest_auth = auth.get('digest', [{}])[0]
-            auth_info.username = digest_auth.get('username', '')
-            auth_info.password = digest_auth.get('password', '')
-        
-        elif auth_type == 'oauth1':
-            auth_info.auth_type = AuthType.OAUTH
-            auth_info.oauth_version = '1.0'
-            oauth_info = auth.get('oauth1', [{}])[0]
-            auth_info.client_id = oauth_info.get('consumerKey', '')
-            auth_info.client_secret = oauth_info.get('consumerSecret', '')
+            
+            basic_config = auth.get('basic', [])
+            if isinstance(basic_config, list):
+                for cred_config in basic_config:
+                    if isinstance(cred_config, dict):
+                        key = cred_config.get('key', '')
+                        value = cred_config.get('value', '')
+                        if key == 'username':
+                            auth_info.username = value
+                        elif key == 'password':
+                            auth_info.password = value
+            elif isinstance(basic_config, dict):
+                auth_info.username = basic_config.get('username', '')
+                auth_info.password = basic_config.get('password', '')
         
         elif auth_type == 'oauth2':
-            auth_info.auth_type = AuthType.OAUTH
-            auth_info.oauth_version = '2.0'
-            oauth_info = auth.get('oauth2', [{}])[0]
-            auth_info.client_id = oauth_info.get('clientId', '')
-            auth_info.client_secret = oauth_info.get('clientSecret', '')
-            auth_info.token = oauth_info.get('accessToken', '')
+            auth_info.auth_type = AuthType.OAUTH2
+            auth_info.location = AuthLocation.HEADER
+            
+            oauth_config = auth.get('oauth2', [])
+            if isinstance(oauth_config, list):
+                for token_config in oauth_config:
+                    if isinstance(token_config, dict):
+                        key = token_config.get('key', '')
+                        value = token_config.get('value', '')
+                        if key == 'accessToken':
+                            auth_info.token = value
+                            break
+            elif isinstance(oauth_config, dict):
+                auth_info.token = oauth_config.get('accessToken', '')
         
         else:
             auth_info.auth_type = AuthType.CUSTOM
@@ -641,18 +697,27 @@ class PostmanParser(BaseParser):
             request: Request object
         """
         # Pre-request scripts
-        pre_request_scripts = request.get('event', [])
-        for event in pre_request_scripts:
+        events = request.get('event', [])
+        if not isinstance(events, list):
+            return
+            
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+                
             if event.get('listen') == 'prerequest':
                 script = event.get('script', {})
-                if script:
+                if isinstance(script, dict):
                     endpoint.pre_request_script = script.get('exec', [])
         
         # Test scripts
-        for event in pre_request_scripts:
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+                
             if event.get('listen') == 'test':
                 script = event.get('script', {})
-                if script:
+                if isinstance(script, dict):
                     endpoint.test_script = script.get('exec', [])
     
     def _process_response_examples(self, endpoint: APIEndpoint, request: Dict[str, Any]):
@@ -664,33 +729,37 @@ class PostmanParser(BaseParser):
             request: Request object
         """
         response_examples = request.get('response', [])
-        if response_examples:
-            # Use the first response example
-            example = response_examples[0]
-            if isinstance(example, dict):
-                # Extract response body
-                body = example.get('body', '')
-                if body:
-                    endpoint.response_body = body
-                
-                # Extract response status
-                status = example.get('status', '')
-                if status:
-                    try:
-                        endpoint.response_status = int(status)
-                    except ValueError:
-                        pass
-                
-                # Extract response headers
-                headers = example.get('header', [])
-                for header in headers:
-                    if isinstance(header, dict):
-                        header_obj = Header(
-                            name=header.get('key', ''),
-                            value=header.get('value', ''),
-                            description=header.get('description', '')
-                        )
-                        endpoint.add_response_header(header_obj)
+        if not isinstance(response_examples, list) or not response_examples:
+            return
+            
+        # Use the first response example
+        example = response_examples[0]
+        if not isinstance(example, dict):
+            return
+            
+        # Extract response body
+        body = example.get('body', '')
+        if body:
+            endpoint.response_body = body
+        
+        # Extract response status
+        status = example.get('status', '')
+        if status:
+            try:
+                endpoint.response_status = int(status)
+            except ValueError:
+                pass
+        
+        # Extract response headers
+        headers = example.get('header', [])
+        for header in headers:
+            if isinstance(header, dict):
+                header_obj = Header(
+                    name=header.get('key', ''),
+                    value=header.get('value', ''),
+                    description=header.get('description', '')
+                )
+                endpoint.add_response_header(header_obj)
     
     def _create_parameter_from_postman(self, param: Dict[str, Any], location: ParameterLocation) -> Optional[Parameter]:
         """

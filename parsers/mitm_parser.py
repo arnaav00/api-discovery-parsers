@@ -162,6 +162,9 @@ class MITMParser(BaseParser):
         current_entry = None
         in_headers = False
         in_body = False
+        current_headers = {}
+        current_body = ""
+        is_request = True  # Track if we're parsing request or response
         
         for line in lines:
             line = line.strip()
@@ -173,28 +176,40 @@ class MITMParser(BaseParser):
                 if current_entry:
                     entries.append(current_entry)
                 current_entry = self._parse_request_line(line)
+                current_headers = {}
+                current_body = ""
                 in_headers = False
                 in_body = False
+                is_request = True
             elif current_entry and self._is_response_start(line):
-                current_entry.update(self._parse_response_line(line))
+                # Save current request headers and body
+                if current_headers:
+                    current_entry['request_headers'] = current_headers
+                if current_body:
+                    current_entry['request_body'] = current_body.strip()
+                
+                # Parse response
+                response_data = self._parse_response_line(line)
+                current_entry.update(response_data)
+                current_headers = {}
+                current_body = ""
                 in_headers = False
                 in_body = False
+                is_request = False
             elif current_entry and self._is_ssl_info(line):
                 current_entry.update(self._parse_ssl_line(line))
-            elif current_entry and in_headers and ':' in line:
-                # Parse header line
+            elif current_entry and in_headers and ':' in line and not line.startswith('{') and not line.startswith('['):
+                # Parse header line (but not JSON body)
                 if ':' in line:
                     header_name, header_value = line.split(':', 1)
-                    current_entry['headers'][header_name.strip()] = header_value.strip()
+                    current_headers[header_name.strip()] = header_value.strip()
             elif current_entry and in_headers and line == '':
                 # Empty line after headers, body might follow
                 in_headers = False
                 in_body = True
             elif current_entry and in_body:
                 # Parse body data
-                if not current_entry.get('body'):
-                    current_entry['body'] = ''
-                current_entry['body'] += line + '\n'
+                current_body += line + '\n'
             elif current_entry and not in_headers and not in_body and any(method in line for method in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']):
                 # This is the HTTP request line (method, URL, version)
                 self._parse_http_request_line(current_entry, line)
@@ -203,9 +218,28 @@ class MITMParser(BaseParser):
                 # This is the HTTP response line
                 self._parse_http_response_line(current_entry, line)
                 in_headers = True
+            elif current_entry and not in_headers and not in_body and ':' in line and not line.startswith('2024-') and not line.startswith('{') and not line.startswith('['):
+                # This might be a header line (but not JSON body)
+                if ':' in line:
+                    header_name, header_value = line.split(':', 1)
+                    current_headers[header_name.strip()] = header_value.strip()
+            elif current_entry and not in_headers and not in_body and (line.startswith('{') or line.startswith('[')):
+                # This is a JSON body
+                current_body = line
+                in_body = True
         
         # Add the last entry
         if current_entry:
+            if current_headers:
+                if is_request:
+                    current_entry['request_headers'] = current_headers
+                else:
+                    current_entry['response_headers'] = current_headers
+            if current_body:
+                if is_request:
+                    current_entry['request_body'] = current_body.strip()
+                else:
+                    current_entry['response_body'] = current_body.strip()
             entries.append(current_entry)
         
         return entries
@@ -228,21 +262,27 @@ class MITMParser(BaseParser):
             r'HTTP/\d\.\d',  # HTTP version
             r'SSL|TLS',  # SSL/TLS indicators
             r'Certificate',  # Certificate indicators
+            r'\[REQUEST\]',  # Request markers
+            r'\[RESPONSE\]',  # Response markers
+            r'\[CONNECT\]',  # SSL connect markers
+            r'mitmproxy',  # mitmproxy indicators
         ]
         
         return any(re.search(pattern, line, re.IGNORECASE) for pattern in patterns)
     
     def _is_request_start(self, line: str) -> bool:
         """Check if line starts a new request."""
-        return bool(re.match(r'^\[\d{4}-\d{2}-\d{2}', line) and 'REQUEST' in line and '->' in line)
+        # Check for mitmproxy format: timestamp [REQUEST] method url
+        return bool(re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \[REQUEST\]', line))
     
     def _is_response_start(self, line: str) -> bool:
         """Check if line starts a response."""
-        return bool(re.match(r'^\[\d{4}-\d{2}-\d{2}', line) and 'RESPONSE' in line and '<-' in line)
+        # Check for mitmproxy format: timestamp [RESPONSE] status
+        return bool(re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \[RESPONSE\]', line))
     
     def _is_ssl_info(self, line: str) -> bool:
         """Check if line contains SSL information."""
-        return any(ssl_term in line.lower() for ssl_term in ['ssl', 'tls', 'certificate', 'subject', 'issuer'])
+        return any(ssl_term in line.lower() for ssl_term in ['ssl', 'tls', 'certificate', 'subject', 'issuer', 'connect', 'tunnel'])
     
     def _is_body_data(self, line: str) -> bool:
         """Check if line contains body data."""
@@ -258,26 +298,23 @@ class MITMParser(BaseParser):
         Returns:
             Parsed request data
         """
-        # Example: [2023-07-15 10:30:22.123] REQUEST 192.168.1.117:56780 -> grpc.example.com:443
-        # Followed by: POST https://grpc.example.com/api.UserService/GetUser HTTP/2
-        match = re.match(r'\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)\]\s+REQUEST\s+([^:]+:\d+)\s+->\s+([^:]+:\d+)', line)
+        # Example: 2024-03-15 10:24:12.478 [REQUEST] GET https://api.example.com/v1/users/123
+        match = re.match(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+\[REQUEST\]\s+(\w+)\s+(https?://[^\s]+)', line)
         
         if match:
-            timestamp, client_info, server_info = match.groups()
-            client_ip, client_port = client_info.split(':')
-            server_host, server_port = server_info.split(':')
+            timestamp, method, url = match.groups()
+            parsed_url = urlparse(url)
             
             return {
                 'timestamp': timestamp,
-                'client_ip': client_ip,
-                'client_port': int(client_port),
-                'server_host': server_host,
-                'server_port': int(server_port),
-                'method': None,  # Will be filled from next line
-                'url': None,     # Will be filled from next line
-                'http_version': None,  # Will be filled from next line
-                'headers': {},
-                'body': None,
+                'method': method,
+                'url': url,
+                'scheme': parsed_url.scheme,
+                'host': parsed_url.netloc,
+                'path': parsed_url.path,
+                'query': parsed_url.query,
+                'request_headers': {},
+                'request_body': None,
                 'ssl_info': None
             }
         
@@ -293,15 +330,15 @@ class MITMParser(BaseParser):
         Returns:
             Parsed response data
         """
-        # Example: HTTP/1.1 200 OK
-        match = re.match(r'(HTTP/\d\.\d)\s+(\d+)\s+(.+)', line)
+        # Example: 2024-03-15 10:24:12.523 [RESPONSE] 200 OK
+        match = re.match(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+\[RESPONSE\]\s+(\d+)\s+(.+)', line)
         
         if match:
-            http_version, status_code, status_text = match.groups()
+            timestamp, status_code, status_text = match.groups()
             return {
+                'response_timestamp': timestamp,
                 'response_status': int(status_code),
                 'response_status_text': status_text,
-                'response_http_version': http_version,
                 'response_headers': {},
                 'response_body': None
             }
@@ -503,19 +540,29 @@ class MITMParser(BaseParser):
             endpoint: The API endpoint to update
             entry: Log entry data
         """
-        headers = entry.get('headers', {})
-        
-        for header_name, header_value in headers.items():
+        # Process request headers
+        request_headers = entry.get('request_headers', {})
+        for header_name, header_value in request_headers.items():
             header = Header(
                 name=header_name,
-                value=str(header_value),
+                value=header_value,
                 description=''
             )
             endpoint.add_header(header)
             
-            # Set content type from headers
+            # Set content type
             if header_name.lower() == 'content-type':
                 endpoint.content_type = normalize_content_type(header_value)
+        
+        # Process response headers
+        response_headers = entry.get('response_headers', {})
+        for header_name, header_value in response_headers.items():
+            header = Header(
+                name=header_name,
+                value=header_value,
+                description=''
+            )
+            endpoint.add_response_header(header)
     
     def _process_request_body(self, endpoint: APIEndpoint, entry: Dict[str, Any]):
         """
@@ -525,29 +572,29 @@ class MITMParser(BaseParser):
             endpoint: The API endpoint to update
             entry: Log entry data
         """
-        body = entry.get('body')
-        if not body:
+        request_body = entry.get('request_body', '')
+        if not request_body:
             return
         
-        # Handle different body formats
-        if isinstance(body, dict):
-            endpoint.request_body = body
-            # Try to infer schema
-            try:
-                schema = extract_schema_from_json(body)
-                endpoint.request_body_schema = schema
-            except Exception:
-                pass
-        elif isinstance(body, str):
+        try:
             # Try to parse as JSON
-            try:
-                json_body = json.loads(body)
-                endpoint.request_body = json_body
-                schema = extract_schema_from_json(json_body)
-                endpoint.request_body_schema = schema
-            except json.JSONDecodeError:
-                # Keep as raw string
-                endpoint.request_body = body
+            if request_body.strip().startswith('{') or request_body.strip().startswith('['):
+                json_data = json.loads(request_body)
+                endpoint.request_body = json_data
+                
+                # Infer schema
+                try:
+                    schema = extract_schema_from_json(json_data)
+                    endpoint.request_body_schema = schema
+                except Exception:
+                    pass
+            else:
+                # Store as text
+                endpoint.request_body = request_body
+                
+        except json.JSONDecodeError:
+            # Store as text if JSON parsing fails
+            endpoint.request_body = request_body
     
     def _process_response(self, endpoint: APIEndpoint, entry: Dict[str, Any]):
         """
@@ -557,32 +604,33 @@ class MITMParser(BaseParser):
             endpoint: The API endpoint to update
             entry: Log entry data
         """
-        # Response status
-        if 'response_status' in entry:
-            endpoint.response_status = entry['response_status']
+        # Set response status
+        response_status = entry.get('response_status')
+        if response_status:
+            endpoint.response_status = response_status
         
-        # Response headers
-        response_headers = entry.get('response_headers', {})
-        for header_name, header_value in response_headers.items():
-            header = Header(
-                name=header_name,
-                value=str(header_value),
-                description=''
-            )
-            endpoint.add_response_header(header)
-        
-        # Response body
-        response_body = entry.get('response_body')
+        # Process response body
+        response_body = entry.get('response_body', '')
         if response_body:
-            endpoint.response_body = response_body
-            
-            # Try to infer schema from JSON response
-            if isinstance(response_body, dict):
-                try:
-                    schema = extract_schema_from_json(response_body)
-                    endpoint.response_body_schema = schema
-                except Exception:
-                    pass
+            try:
+                # Try to parse as JSON
+                if response_body.strip().startswith('{') or response_body.strip().startswith('['):
+                    json_data = json.loads(response_body)
+                    endpoint.response_body = json_data
+                    
+                    # Infer schema
+                    try:
+                        schema = extract_schema_from_json(json_data)
+                        endpoint.response_body_schema = schema
+                    except Exception:
+                        pass
+                else:
+                    # Store as text
+                    endpoint.response_body = response_body
+                    
+            except json.JSONDecodeError:
+                # Store as text if JSON parsing fails
+                endpoint.response_body = response_body
     
     def _process_ssl_info(self, endpoint: APIEndpoint, entry: Dict[str, Any]):
         """
@@ -616,14 +664,14 @@ class MITMParser(BaseParser):
             endpoint: The API endpoint to update
             entry: Log entry data
         """
-        headers = entry.get('headers', {})
+        request_headers = entry.get('request_headers', {})
         
         # Check for authentication headers
         auth_headers = {
-            'authorization': headers.get('authorization', ''),
-            'x-api-key': headers.get('x-api-key', ''),
-            'x-auth-token': headers.get('x-auth-token', ''),
-            'cookie': headers.get('cookie', '')
+            'authorization': request_headers.get('authorization', ''),
+            'x-api-key': request_headers.get('x-api-key', ''),
+            'x-auth-token': request_headers.get('x-auth-token', ''),
+            'cookie': request_headers.get('cookie', '')
         }
         
         # Create auth info based on headers
