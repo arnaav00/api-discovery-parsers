@@ -166,7 +166,12 @@ class SourceCodeParser(BaseParser):
         if isinstance(data, str):
             # Check if it's a file path
             if os.path.exists(data):
-                return self._is_source_code_file(data)
+                if os.path.isfile(data):
+                    return self._is_source_code_file(data)
+                elif os.path.isdir(data):
+                    # Check if directory contains source code files
+                    source_files = self._find_source_files(data)
+                    return len(source_files) > 0
             # Check if it's source code content
             return self._is_source_code_content(data)
         elif isinstance(data, list):
@@ -368,11 +373,15 @@ class SourceCodeParser(BaseParser):
             'setup.py': self._parse_setup_py,
         }
         
-        for file_name, parser_func in config_files.items():
-            for file_path in self.source_files:
-                if os.path.basename(file_path) == file_name:
+        # Get the directory of the first source file to look for config files
+        if self.source_files:
+            base_dir = os.path.dirname(self.source_files[0])
+            
+            for file_name, parser_func in config_files.items():
+                config_path = os.path.join(base_dir, file_name)
+                if os.path.exists(config_path):
                     try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
+                        with open(config_path, 'r', encoding='utf-8') as f:
                             content = f.read()
                             config_data = parser_func(content)
                             self.config_files[file_name] = config_data

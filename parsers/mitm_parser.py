@@ -44,21 +44,39 @@ class MITMParser(BaseParser):
         Check if this parser can handle the given data.
         
         Args:
-            data: The data to check (can be string, dict, or file path)
+            data: The data to check (can be string, dict, list, or file path)
             
         Returns:
             True if the parser can handle this data type, False otherwise
         """
         try:
-            if isinstance(data, str):
-                # Try to parse as JSON first
-                try:
-                    log_data = json.loads(data)
-                    return self._validate_mitm_log(log_data)
-                except json.JSONDecodeError:
-                    # Try to parse as line-by-line log format
-                    lines = data.strip().split('\n')
-                    return len(lines) > 0 and any(self._is_mitm_log_line(line) for line in lines[:5])
+            if isinstance(data, list):
+                return self._validate_mitm_log(data)
+            elif isinstance(data, str):
+                # Check if it's a file path
+                if data.endswith(('.json', '.log', '.txt')):
+                    try:
+                        with open(data, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        # Try to parse as JSON first
+                        try:
+                            log_data = json.loads(content)
+                            return self._validate_mitm_log(log_data)
+                        except json.JSONDecodeError:
+                            # Try to parse as line-by-line log format
+                            lines = content.strip().split('\n')
+                            return len(lines) > 0 and any(self._is_mitm_log_line(line) for line in lines[:5])
+                    except FileNotFoundError:
+                        return False
+                else:
+                    # Try to parse as JSON first
+                    try:
+                        log_data = json.loads(data)
+                        return self._validate_mitm_log(log_data)
+                    except json.JSONDecodeError:
+                        # Try to parse as line-by-line log format
+                        lines = data.strip().split('\n')
+                        return len(lines) > 0 and any(self._is_mitm_log_line(line) for line in lines[:5])
             elif isinstance(data, dict):
                 return self._validate_mitm_log(data)
             else:

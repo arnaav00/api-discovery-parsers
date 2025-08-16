@@ -2,6 +2,9 @@ import json
 import re
 import time
 import random
+import socket
+import dns.resolver
+import dns.exception
 from typing import List, Dict, Any, Optional, Union, Set
 from urllib.parse import urljoin, urlparse, parse_qs
 from datetime import datetime
@@ -98,6 +101,51 @@ class BaseURLParser(BaseParser):
             'X-Rate-Limit', 'Retry-After'
         ]
         
+        # Subdomain enumeration patterns
+        self.common_subdomains = [
+            # API and development
+            'api', 'dev', 'staging', 'test', 'sandbox', 'beta', 'alpha',
+            'v1', 'v2', 'v3', 'v1-api', 'v2-api', 'v3-api',
+            'rest', 'graphql', 'grpc', 'soap',
+            
+            # Environment specific
+            'prod', 'production', 'live', 'uat', 'qa', 'preprod',
+            'internal', 'external', 'public', 'private',
+            
+            # Service specific
+            'auth', 'login', 'admin', 'management', 'portal',
+            'dashboard', 'console', 'monitor', 'status',
+            'webhook', 'hook', 'callback', 'notify',
+            
+            # Geographic and regional
+            'us', 'eu', 'asia', 'na', 'sa', 'af', 'au',
+            'east', 'west', 'north', 'south',
+            'nyc', 'london', 'tokyo', 'sydney', 'frankfurt',
+            
+            # CDN and infrastructure
+            'cdn', 'static', 'assets', 'media', 'img', 'images',
+            'cache', 'proxy', 'gateway', 'router',
+            
+            # Business specific
+            'app', 'mobile', 'web', 'desktop', 'client',
+            'server', 'backend', 'frontend', 'db', 'database',
+            'mail', 'email', 'smtp', 'imap', 'pop',
+            'ftp', 'sftp', 'ssh', 'vpn',
+            
+            # Common prefixes
+            'www', 'm', 'mobile', 'secure', 'ssl', 'tls',
+            'old', 'new', 'legacy', 'modern', 'classic'
+        ]
+        
+        # Subdomain discovery results
+        self.discovered_subdomains = []
+        self.subdomain_endpoints = []
+        self.dns_resolvers = [
+            '8.8.8.8', '8.8.4.4',  # Google DNS
+            '1.1.1.1', '1.0.0.1',  # Cloudflare DNS
+            '208.67.222.222', '208.67.220.220'  # OpenDNS
+        ]
+        
         # Authentication patterns
         self.auth_patterns = {
             'bearer': r'bearer\s+[a-zA-Z0-9\-._~+/]+=*',
@@ -174,7 +222,7 @@ class BaseURLParser(BaseParser):
         
         # Ensure scheme is present
         if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
+            url = 'http://' + url  # Default to HTTP instead of HTTPS
         
         # Validate URL
         parsed = urlparse(url)
@@ -187,8 +235,13 @@ class BaseURLParser(BaseParser):
         """Discover API endpoints from the base URL."""
         # Starting endpoint discovery
         
+        # First, get the root page content for comparison
+        root_response = self._make_request('GET', self.base_url)
+        if root_response and root_response.status_code == 200:
+            self._root_page_content = root_response.text.lower()
+        
         # Test common paths
-        discovered_endpoints = []
+        self.add_warning(f"Testing {len(self.common_paths)} common paths on {self.base_url}")
         
         # Use ThreadPoolExecutor for concurrent requests
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -204,39 +257,232 @@ class BaseURLParser(BaseParser):
                 try:
                     endpoint = future.result()
                     if endpoint:
-                        discovered_endpoints.append(endpoint)
+                        self.discovered_endpoints.append(endpoint)
                         self.add_endpoint(endpoint)
                 except Exception as e:
-                    self.add_warning(f"Failed to test path {path}: {str(e)}")
+                    self.add_warning(f"Error testing path {path}: {str(e)}")
         
-        # Discover additional endpoints through pattern inference
-        self._discover_pattern_based_endpoints(discovered_endpoints)
+        # Discover subdomains
+        #self._discover_subdomains()
         
-        self.update_stats('discovered_endpoints', len(discovered_endpoints))
+        # Discover pattern-based endpoints
+        #self._discover_pattern_based_endpoints(self.discovered_endpoints)
+        
+        self.update_stats('discovered_endpoints', len(self.discovered_endpoints))
     
     def _test_endpoint(self, path: str) -> Optional[APIEndpoint]:
         """
-        Test a specific endpoint path.
+        Test an endpoint on the main base URL.
         
         Args:
-            path: Path to test
+            path: The path to test
             
         Returns:
-            APIEndpoint if discovered, None otherwise
+            APIEndpoint if found, None otherwise
         """
-        url = urljoin(self.base_url, path)
+        return self._test_endpoint_on_url(path, self.base_url)
+    
+    def _discover_subdomains(self):
+        """Discover subdomains and test them for API endpoints."""
+        try:
+            parsed_url = urlparse(self.base_url)
+            domain = parsed_url.netloc
+            
+            # Remove port if present
+            if ':' in domain:
+                domain = domain.split(':')[0]
+            
+            # Remove www. prefix if present
+            if domain.startswith('www.'):
+                domain = domain[4:]
+            
+            self.add_warning(f"Starting subdomain enumeration for domain: {domain}")
+            
+            # Discover subdomains using DNS
+            discovered_subdomains = self._enumerate_subdomains(domain)
+            
+            if discovered_subdomains:
+                self.add_warning(f"Found {len(discovered_subdomains)} subdomains")
+                
+                # Test each subdomain for API endpoints
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    future_to_subdomain = {
+                        executor.submit(self._test_subdomain, subdomain, parsed_url.scheme): subdomain 
+                        for subdomain in discovered_subdomains
+                    }
+                    
+                    for future in as_completed(future_to_subdomain):
+                        subdomain = future_to_subdomain[future]
+                        try:
+                            subdomain_endpoints = future.result()
+                            if subdomain_endpoints:
+                                self.subdomain_endpoints.extend(subdomain_endpoints)
+                                for endpoint in subdomain_endpoints:
+                                    self.add_endpoint(endpoint)
+                        except Exception as e:
+                            self.add_warning(f"Error testing subdomain {subdomain}: {str(e)}")
+            
+            self.update_stats('discovered_subdomains', len(discovered_subdomains))
+            self.update_stats('subdomain_endpoints', len(self.subdomain_endpoints))
+            
+        except Exception as e:
+            self.add_error(f"Error during subdomain discovery: {str(e)}")
+    
+    def _enumerate_subdomains(self, domain: str) -> List[str]:
+        """
+        Enumerate subdomains using DNS resolution.
         
-        # Test different HTTP methods
-        for method in self.http_methods:
+        Args:
+            domain: The base domain to enumerate subdomains for
+            
+        Returns:
+            List of discovered subdomains
+        """
+        discovered_subdomains = []
+        
+        for subdomain in self.common_subdomains:
+            full_subdomain = f"{subdomain}.{domain}"
+            
+            try:
+                # Try socket resolution first (faster)
+                if self._resolve_dns(full_subdomain):
+                    discovered_subdomains.append(full_subdomain)
+                    self.add_warning(f"Discovered subdomain: {full_subdomain}")
+            except Exception as e:
+                # Silently continue if DNS resolution fails
+                continue
+        
+        return discovered_subdomains
+    
+    def _resolve_dns(self, hostname: str) -> bool:
+        """
+        Resolve DNS for a hostname.
+        
+        Args:
+            hostname: The hostname to resolve
+            
+        Returns:
+            True if DNS resolution succeeds, False otherwise
+        """
+        try:
+            # Try socket resolution first (faster)
+            socket.gethostbyname(hostname)
+            return True
+        except socket.gaierror:
+            try:
+                # Try DNS resolver as fallback
+                resolver = dns.resolver.Resolver()
+                resolver.nameservers = self.dns_resolvers
+                resolver.resolve(hostname, 'A')
+                return True
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.DNSException):
+                return False
+        except Exception:
+            return False
+    
+    def _test_subdomain(self, subdomain: str, scheme: str) -> List[APIEndpoint]:
+        """
+        Test a subdomain for API endpoints.
+        
+        Args:
+            subdomain: The subdomain to test
+            scheme: The URL scheme (http/https)
+            
+        Returns:
+            List of discovered endpoints on the subdomain
+        """
+        subdomain_endpoints = []
+        subdomain_url = f"{scheme}://{subdomain}"
+        
+        # Test common API paths on the subdomain
+        for path in self.common_paths:
+            try:
+                endpoint = self._test_endpoint_on_url(path, subdomain_url)
+                if endpoint:
+                    subdomain_endpoints.append(endpoint)
+            except Exception as e:
+                # Continue testing other paths
+                continue
+        
+        return subdomain_endpoints
+    
+    def _test_endpoint_on_url(self, path: str, base_url: str) -> Optional[APIEndpoint]:
+        """
+        Test an endpoint on a specific base URL.
+        
+        Args:
+            path: The path to test
+            base_url: The base URL to test against
+            
+        Returns:
+            APIEndpoint if found, None otherwise
+        """
+        url = urljoin(base_url, path)
+        
+        # First, try HEAD request to check if endpoint exists
+        head_response = self._make_request('HEAD', url)
+        if head_response and head_response.status_code == 404:
+            # Endpoint definitely doesn't exist
+            return None
+        
+        # Try HTTP methods in order of preference (GET first, OPTIONS excluded)
+        preferred_methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD']
+        
+        for method in preferred_methods:
             try:
                 response = self._make_request(method, url)
                 if response and self._is_valid_api_response(response):
-                    return self._create_endpoint_from_response(method, path, url, response)
-            except Exception as e:
-                # Continue with other methods
+                    # Additional check: make sure it's not a generic error page
+                    if self._is_generic_error_page(response):
+                        continue
+                    
+                    endpoint = self._create_endpoint_from_response(method, path, url, response)
+                    endpoint.base_url = base_url
+                    return endpoint
+            except Exception:
                 continue
         
         return None
+    
+    def _is_generic_error_page(self, response: requests.Response) -> bool:
+        """
+        Check if the response is a generic error page or default server response.
+        
+        Args:
+            response: HTTP response
+            
+        Returns:
+            True if it's a generic error page
+        """
+        try:
+            text = response.text.lower()
+            
+            # Check for common generic error page indicators
+            generic_indicators = [
+                'page not found', '404 not found', 'not found',
+                'the requested url was not found', 'file not found',
+                'nginx', 'apache', 'server error', 'internal server error',
+                'welcome to nginx', 'welcome to apache', 'default page',
+                'it works!', 'index of /', 'directory listing'
+            ]
+            
+            # If it contains multiple generic indicators, it's likely a generic page
+            indicator_count = sum(1 for indicator in generic_indicators if indicator in text)
+            if indicator_count >= 2:
+                return True
+            
+            # Check for very short responses that are likely generic
+            if len(text) < 100 and any(indicator in text for indicator in ['nginx', 'apache', 'welcome']):
+                return True
+            
+            # Check if it's the same as the root page (likely a catch-all)
+            if hasattr(self, '_root_page_content') and text == self._root_page_content:
+                return True
+            
+        except Exception:
+            pass
+        
+        return False
     
     def _make_request(self, method: str, url: str, timeout: int = 10) -> Optional[requests.Response]:
         """
@@ -278,36 +524,123 @@ class BaseURLParser(BaseParser):
         Returns:
             True if valid API response
         """
-        # Check status code
-        if response.status_code >= 400:
+        # Check status code - only accept 2xx responses for API endpoints
+        if response.status_code < 200 or response.status_code >= 300:
             return False
         
         # Check content type
         content_type = response.headers.get('content-type', '').lower()
+        
+        # Accept JSON responses (definitely API endpoints)
         if 'application/json' in content_type:
             return True
-        if 'text/html' in content_type and response.status_code == 200:
-            # Could be API documentation
+        
+        # Accept XML responses (API endpoints)
+        if 'application/xml' in content_type or 'text/xml' in content_type:
             return True
         
-        # Check for API indicators in headers
-        api_headers = ['x-api-version', 'x-rate-limit', 'x-total-count']
-        if any(header in response.headers for header in api_headers):
+        # Accept plain text responses that might be API responses
+        if 'text/plain' in content_type:
+            # Check if it looks like JSON or API response
+            try:
+                text = response.text.strip()
+                if text.startswith('{') or text.startswith('['):
+                    return True
+                # Check for common API response patterns
+                if any(pattern in text.lower() for pattern in ['success', 'error', 'status', 'data', 'result']):
+                    return True
+            except Exception:
+                pass
+        
+        # For HTML responses, be EXTREMELY strict - only accept if it's clearly an API endpoint
+        if 'text/html' in content_type:
+            try:
+                text = response.text.lower()
+                
+                # Check for API documentation indicators (very specific)
+                api_indicators = [
+                    'swagger', 'openapi', 'api documentation', 'rest api', 
+                    'graphql', 'endpoint', 'api reference', 'api docs',
+                    'postman', 'curl', 'http', 'request', 'response'
+                ]
+                
+                # Check if it contains API indicators
+                if any(indicator in text for indicator in api_indicators):
+                    return True
+                
+                # Check for JSON-LD structured data indicating API
+                if 'application/ld+json' in text or '"@type":"api"' in text:
+                    return True
+                
+                # Check for OpenAPI/Swagger JSON embedded in HTML
+                if 'swagger' in text and ('"openapi"' in text or '"swagger"' in text):
+                    return True
+                
+                # Accept HTML responses that might be SPAs serving APIs
+                if 'react' in text or 'vue' in text or 'angular' in text:
+                    return True
+                
+                # Accept HTML responses that contain form elements (login/signup pages)
+                if 'form' in text and any(action in text for action in ['login', 'signup', 'register', 'auth']):
+                    return True
+                
+                # Accept HTML responses that contain specific API-related content
+                if any(keyword in text for keyword in ['login', 'signup', 'dashboard', 'shop', 'api', 'endpoint']):
+                    return True
+                
+            except Exception:
+                pass
+        
+        # Check for API-specific headers
+        api_headers = [
+            'x-api-version', 'x-rate-limit', 'x-total-count', 'x-powered-by',
+            'x-request-id', 'x-correlation-id', 'x-trace-id'
+        ]
+        if any(header.lower() in response.headers for header in api_headers):
             return True
         
-        # Check for API indicators in response body
-        try:
-            if response.text and len(response.text) < 10000:  # Reasonable size
-                # Look for JSON structure
-                if response.text.strip().startswith('{') or response.text.strip().startswith('['):
-                    return True
-                # Look for API documentation indicators
-                if any(indicator in response.text.lower() for indicator in ['api', 'swagger', 'openapi', 'endpoint']):
-                    return True
-        except Exception:
-            pass
+        # Accept any response with status 200-299 that's not too large and not a generic error page
+        if 200 <= response.status_code < 300 and len(response.text) < 100000:
+            # Final check: make sure it's not a generic error page
+            if not self._is_generic_error_page(response):
+                return True
         
         return False
+    
+    def _is_valid_options_response(self, response: requests.Response) -> bool:
+        """
+        Check if an OPTIONS response indicates a valid API endpoint.
+        OPTIONS responses are often used for CORS preflight, so we need to be very strict.
+        
+        Args:
+            response: HTTP response
+            
+        Returns:
+            True if valid API endpoint
+        """
+        # Check status code
+        if response.status_code < 200 or response.status_code >= 300:
+            return False
+        
+        # Check for CORS headers that indicate a real API
+        cors_headers = [
+            'access-control-allow-methods', 'access-control-allow-headers',
+            'access-control-allow-origin', 'access-control-allow-credentials'
+        ]
+        
+        has_cors_headers = any(header in response.headers for header in cors_headers)
+        
+        # Check for API-specific headers
+        api_headers = [
+            'x-api-version', 'x-rate-limit', 'x-total-count', 'x-powered-by',
+            'x-request-id', 'x-correlation-id', 'x-trace-id'
+        ]
+        
+        has_api_headers = any(header.lower() in response.headers for header in api_headers)
+        
+        # For OPTIONS, we need BOTH CORS headers AND API headers to consider it valid
+        # This prevents accepting generic CORS preflight responses
+        return has_cors_headers and has_api_headers
     
     def _create_endpoint_from_response(self, method: str, path: str, url: str, response: requests.Response) -> APIEndpoint:
         """
@@ -704,8 +1037,16 @@ class BaseURLParser(BaseParser):
         return self.auth_endpoints.copy()
     
     def get_rate_limits(self) -> Dict[str, Dict[str, str]]:
-        """Get the discovered rate limiting information."""
+        """Get the rate limiting information."""
         return self.rate_limits.copy()
+    
+    def get_discovered_subdomains(self) -> List[str]:
+        """Get the list of discovered subdomains."""
+        return self.discovered_subdomains.copy()
+    
+    def get_subdomain_endpoints(self) -> List[APIEndpoint]:
+        """Get the endpoints discovered on subdomains."""
+        return self.subdomain_endpoints.copy()
 
 
 if __name__ == "__main__":
@@ -803,6 +1144,37 @@ if __name__ == "__main__":
                     print(f"  Count: {len(endpoints)}")
                     print(f"  Methods: {list(set(ep.method for ep in endpoints))}")
                     print()
+            
+            # Show subdomain discovery results
+            discovered_subdomains = parser.get_discovered_subdomains()
+            if discovered_subdomains:
+                print(f"\n{'='*60}")
+                print("Discovered Subdomains:")
+                print(f"{'='*60}")
+                for subdomain in discovered_subdomains:
+                    print(f"  ✓ {subdomain}")
+                print()
+            
+            subdomain_endpoints = parser.get_subdomain_endpoints()
+            if subdomain_endpoints:
+                print(f"\n{'='*60}")
+                print("Subdomain Endpoints:")
+                print(f"{'='*60}")
+                for i, endpoint in enumerate(subdomain_endpoints, 1):
+                    print(f"\n{i}. {endpoint.method} {endpoint.full_url}")
+                    print(f"   Path: {endpoint.path}")
+                    print(f"   Base URL: {endpoint.base_url}")
+                    
+                    if endpoint.response_headers:
+                        print(f"   Response Headers ({len(endpoint.response_headers)}):")
+                        for header in endpoint.response_headers[:3]:  # Show first 3
+                            print(f"     - {header.name}: {header.value}")
+                    
+                    if endpoint.ssl_info:
+                        print(f"   SSL: {endpoint.ssl_info.subject}")
+                    
+                    print("-" * 40)
+                print()
             
             # Show statistics
             stats = parser.get_stats()
